@@ -37,14 +37,20 @@ private:
 
 	//Raycast and grab what's in reach
 	void Grab();
+
 	// called when Grab is released
 	void Release();
+
 	// find attached physics
 	void FindPhysicsHandleComponent();
+
 	//setup attached input component
 	void SetupInputComponent();
 
 	//return hit for firsth physics body in reach
 	const FHitResult GetFirstPhysicsBodyInReach();
+
+	 // return current start & end of reach line
+	 const FTwoVectors GetLineTraceStartEnd();
 
 };
