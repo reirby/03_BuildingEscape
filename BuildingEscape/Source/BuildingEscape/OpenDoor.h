@@ -36,7 +36,7 @@ private:
 	ATriggerVolume* PressurePlate = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	float TriggerMass = 30.f;
+	float TriggerMass = 30.0f;
 	
 	//the owning door
 	AActor* Owner = nullptr; 

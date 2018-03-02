@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "OpenDoor.h"
+#include <math.h>
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "Gameframework/Actor.h"
@@ -34,7 +35,7 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// Poll the trigger volume 
-	if (GetTotalMassOfActorsOnPLate() > TriggerMass) 
+	if (GetTotalMassOfActorsOnPLate() == TriggerMass) 
 	{
 		OnOpen.Broadcast();
 	}
@@ -57,9 +58,11 @@ float UOpenDoor::GetTotalMassOfActorsOnPLate()
 	for (const auto* Actor : OverlapingActors)
 	{
 		TotalMass += Actor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
-		UE_LOG(LogTemp, Warning, TEXT("%s is in a trigger volume"), *Actor->GetName());
+	//	UE_LOG(LogTemp, Warning, TEXT("%s is in a trigger volume"), *Actor->GetName());
+	//	FString rep = FString::SanitizeFloat(round(TotalMass));
+	//	UE_LOG(LogTemp, Warning, TEXT("TotalMass is %s "), *rep);
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("total mass is %s"), *std::to_string(TotalMass));
 
-	return TotalMass;
+	return round(TotalMass);
 }

@@ -55,10 +55,29 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 
 	if (!PhysicsHandle) { return; }
 	// if the physics handle is attached
+	
 	if (PhysicsHandle->GrabbedComponent)
 	{
-		//move the object that we are holding
+	//	UE_LOG(LogTemp, Warning, TEXT("The distance from Grabbed is %s"), *FString::SanitizeFloat((GetDistanceFromGrabbed())));
+		
+
+		float PlayerYaw = GetPlayerViewPoint(); // The player's Yaw is updated here.
+		float NewYaw = (PlayerYaw - PlayerCapturedYaw) + GrabbedCapturedYaw; // Your changes in rotation are added to the grabbed object.
+		
+		//move and turn the object that we are holding
 		PhysicsHandle->SetTargetLocation(GetLineTraceStartEnd().v2);
+		PhysicsHandle->SetTargetRotation(FRotator(0.0f, NewYaw, 0.0f)); // Grabbed object is made up-right and it's Yaw rotates with the player's.
+		
+		//get the actor we are holding
+		ActorGrabbed = PhysicsHandle->GrabbedComponent->GetOwner();
+		
+		//if the distance to object is too big - release it
+		if (GetDistanceFromGrabbed() > MaxHoldingDistance)
+		{
+			Release();
+		}
+	
+
 	}
 }
 
@@ -67,6 +86,11 @@ void UGrabber::Grab() {
 	auto HitResult = GetFirstPhysicsBodyInReach();
 	auto ComponentToGrab = HitResult.GetComponent();
 	auto ActorHit = HitResult.GetActor();
+
+	//take a “snapshot” of theplayer and grabbed actor yaw at the moment you grab
+	GrabbedCapturedYaw = ActorHit->GetActorRotation().Yaw;
+	PlayerCapturedYaw = GetPlayerViewPoint();
+	
 
 	/// if we hit something then attach a phisics handle
 	if (ActorHit)
@@ -112,4 +136,34 @@ const FTwoVectors UGrabber::GetLineTraceStartEnd()
 	);
 	FVector EndLocation = StartLocation + PlayerViewPointRotation.Vector() * Reach;
 	return FTwoVectors(StartLocation,EndLocation);
+}
+
+// get the distance from grabbed object to player
+float UGrabber::GetDistanceFromGrabbed()
+{
+	float Distance = 10.f;
+	
+	if (!ActorGrabbed) { return Distance; }
+
+	//determine the location of the grabbed actor
+	FVector GrabbedActorLocation = ActorGrabbed->GetActorLocation();
+	// determine the vector difference between actor location and linetrace end
+	FVector VectorDifference = GrabbedActorLocation - GetLineTraceStartEnd().v2;
+
+	FVector Direction; //helping variable to use in the ToDirectionAndLength method
+	VectorDifference.ToDirectionAndLength(Direction, Distance);
+
+	return Distance;
+}
+
+float UGrabber::GetPlayerViewPoint()
+{
+	FVector StartLocation;
+	FRotator PlayerViewPointRotation;
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
+		OUT StartLocation,
+		OUT PlayerViewPointRotation
+	);
+	
+	return PlayerViewPointRotation.Yaw;
 }
